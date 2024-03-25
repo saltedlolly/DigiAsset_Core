@@ -1,6 +1,6 @@
-# DigiAsset Core Instructions for Linux (x86_64)
+# DigiAsset Core Instuctions for Raspberry Pi 4/5 (arm64)
 
-**Note**: Go [here](readme_pi.md) for instructions for arm64 devices - e.g. Raspberry Pi 4/5
+**Note**: Go [here](readme.md) for instructions for x86_64 devices - e.g. AMD/Intel
 
 **Tip**: You can use [DigiNode Tools](https://diginode.tools) for a fully automated setup.
 
@@ -58,9 +58,9 @@ place the following at the end(if swap.img is already there replace it)
 ## Install DigiByte Core
 
 ```bash
-wget https://github.com/digibyte/digibyte/releases/download/v7.17.3/digibyte-7.17.3-x86_64-linux-gnu.tar.gz
-tar -xf digibyte-7.17.3-x86_64-linux-gnu.tar.gz
-rm digibyte-7.17.3-x86_64-linux-gnu.tar.gz
+wget https://github.com/digibyte/digibyte/releases/download/v7.17.3/digibyte-7.17.3-aarch64-linux-gnu.tar.gz
+tar -xf digibyte-7.17.3-aarch64-linux-gnu.tar.gz
+rm digibyte-7.17.3-aarch64-linux-gnu.tar.gz
 mkdir .digibyte
 nano .digibyte/digibyte.conf
 ```
@@ -134,8 +134,22 @@ sudo systemctl start digibyted.service
 ```bash
 sudo apt update
 sudo apt upgrade
-sudo apt-get install cmake libcurl4-openssl-dev libjsoncpp-dev golang-go libjsonrpccpp-dev libjsonrpccpp-tools libsqlite3-dev build-essential pkg-config zip unzip libssl-dev
+sudo apt-get install cmake libcurl4-openssl-dev libjsoncpp-dev golang-go libjsonrpccpp-dev libjsonrpccpp-tools libsqlite3-dev build-essential pkg-config zip unzip libssl-dev ninja-build
 sudo apt install libboost-all-dev
+```
+
+## Update CMAKE
+
+```bash
+cd ~
+sudo apt-get remove cmake
+wget https://github.com/Kitware/CMake/releases/download/v3.27.7/cmake-3.29.0-linux-aarch64.sh
+sudo mkdir /opt/cmake
+sudo sh cmake-3.29.0-linux-aarch64.sh --prefix=/opt/cmake --skip-license
+sudo ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
+echo 'export PATH=/usr/local/cmake-3.29.0-linux-aarch64/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+rm cmake-3.29.0-linux-aarch64.sh
 ```
 
 ## Install VCPKG
@@ -148,45 +162,37 @@ rm vcpkg.tar.gz
 sudo /opt/vcpkg/bootstrap-vcpkg.sh
 sudo ln -s /opt/vcpkg/vcpkg /usr/local/bin/vcpkg
 ```
+Note: After compiling you may see the following message: 
+Environment variable VCPKG_FORCE_SYSTEM_BINARIES must be set on arm, s390x, ppc64le and riscv platforms.
+
+If so, enter the commands below:
+```bash
+echo 'export VCPKG_FORCE_SYSTEM_BINARIES=1' >> ~/.bashrc
+echo 'VCPKG_FORCE_SYSTEM_BINARIES=1' | sudo tee -a /etc/environment > /dev/null
+source ~/.bashrc
+```
 
 ## Install Standard C++ Dependencies
 
 Warning: The following steps build a lot of code and can take a long time to complete
 
 ```bash
-sudo vcpkg install cryptopp
+sudo -E vcpkg install cryptopp
 sudo mkdir /usr/local/include/cryptopp870
-sudo cp /opt/vcpkg/packages/cryptopp_x64-linux/include/cryptopp/* /usr/local/include/cryptopp870/
-sudo vcpkg install sqlite3
+sudo cp /opt/vcpkg/packages/cryptopp_arm64-linux/include/cryptopp/* /usr/local/include/cryptopp870/
+sudo -E vcpkg install sqlite3
 sudo apt install libcrypto++-dev
-```
-
-## Update CMAKE
-
-```bash
-wget https://github.com/Kitware/CMake/releases/download/v3.27.7/cmake-3.27.7-linux-x86_64.sh
-chmod +x cmake-3.27.7-linux-x86_64.sh
-sudo ./cmake-3.27.7-linux-x86_64.sh --prefix=/usr/local
-export PATH=/usr/local/cmake-3.27.7-linux-x86_64/bin:$PATH
-nano ~/.bashrc
-```
-
-at the end of the file add
-
-```
-export PATH=/usr/local/cmake-3.27.7-linux-x86_64/bin:$PATH
 ```
 
 ## Install IPFS Desktop
 
 ```bash
-wget https://dist.ipfs.tech/kubo/v0.22.0/kubo_v0.22.0_linux-amd64.tar.gz
-tar -xvzf kubo_v0.22.0_linux-amd64.tar.gz
+wget https://dist.ipfs.tech/kubo/v0.22.0/kubo_v0.22.0_linux-arm64.tar.gz
+tar -xvzf kubo_v0.22.0_linux-arm64.tar.gz
 cd kubo
 sudo bash install.sh
 ipfs init
 ipfs daemon
-
 ```
 
 this step will list out a lot of data of importance is the line that says "RPC API server listening on" it is usually
